@@ -14,12 +14,17 @@ const {createTopic, createAccount} = require('./lib-hedera');
 async function main() {
 
     //Grab your Hedera testnet account ID and private key from your .env file
-    const myAccountId = process.env.MY_ACCOUNT_ID;
-    const myPrivateKey = process.env.MY_PRIVATE_KEY;
+    myAccountId = process.env.MY_ACCOUNT_ID;
+    myPrivateKey = process.env.MY_PRIVATE_KEY;
 
     // If we weren't able to grab it, we should throw a new error
     if (myAccountId == null || myAccountId == '_' || myPrivateKey == null || myPrivateKey == '_' ) {
-        throw new Error("Environment variables myAccountId and myPrivateKey must be present");
+        console.log("Account ID or private key not defined.")
+        myAccountId = prompt('Please insert your Hedera account ID: ');
+        myPrivateKey = prompt('Please insert your Hedera private key: ');
+
+        setEnv("MY_ACCOUNT_ID", myAccountId);
+        setEnv("MY_PRIVATE_KEY", myPrivateKey);
     }
 
     // Create our connection to the Hedera network
