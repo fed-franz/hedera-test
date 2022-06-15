@@ -4,13 +4,20 @@
 npm install --save @hashgraph/sdk
 npm install dotenv
 
-node index.js
+node init.js
 ```
 
 # Usage
 
+Set the .env file with these fields:
+```
+MY_ACCOUNT_ID=_
+MY_PRIVATE_KEY=_
+TOPIC_ID=_
+```
+
 To verify the account and topic setup:
-`node index.js`
+`node init.js`
 
 To generate transactions:
 `node generateTxs.js [NUM_TXS]`
