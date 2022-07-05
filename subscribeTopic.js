@@ -1,49 +1,51 @@
 const {
-    AccountBalanceQuery,
-    AccountCreateTransaction,
-    AccountId,
-    Hbar,
-    PrivateKey,
-    Client,
-    TopicCreateTransaction,
     TopicMessageQuery,
-    TopicMessageSubmitTransaction,
-    TransferTransaction,
     TopicId,
-    Status
 } = require("@hashgraph/sdk");
 
 require("dotenv").config();
 
 const {printTime} = require('./utils');
+const {connectClient} = require('./lib-hedera');
 
 /*******************************************/
 
 async function main() {
 
-    //Grab your Hedera testnet account ID and private key from your .env file
-    const myAccountId = process.env.MY_ACCOUNT_ID;
-    const myPrivateKey = process.env.MY_PRIVATE_KEY;
+    /* Process .env */
+    const accountId = process.env.ACCOUNT_ID;
+    const privateKey = process.env.PRIVATE_KEY;
+    topicNumber = process.env.TOPIC_NUM;
 
-    // If we weren't able to grab it, we should throw a new error
-    if (myAccountId == null ||
-        myPrivateKey == null ) {
-        throw new Error("Environment variables myAccountId and myPrivateKey must be present");
+    // Assert Account
+    if (accountId == null ||
+        privateKey == null ) {
+            throw new Error("Please set ACCOUNT_ID and PRIVATE_KEY in the .env file");
     }
+    
+    /* Process arguments */
+    const psArgs = process.argv.slice(2);
+    TOPIC_NUM = null
+    if (psArgs.length > 0)
+        TOPIC_NUM = psArgs[0];
 
-    // Create our connection to the Hedera network
-    // The Hedera JS SDK makes this really easy!
-    const client = Client.forTestnet();
-    client.setOperator(myAccountId, myPrivateKey);
+    // Set topic ID
+    // Give priority to argument over .env
+    if(TOPIC_NUM != null)
+        topicNumber = TOPIC_NUM;
+    
+    // Assert topic
+    if(topicNumber == null)
+        throw new Error("Please provide topic number or set 'TOPIC_NUM' in the .env file");
 
-    //Grab the topic ID from .env file
-    const myTopicId = process.env.TOPIC_ID;
-    if (myTopicId == null) {
-        throw new Error("Environment variable TOPIC_ID must be present");
-    }
-    topicId = TopicId.fromString(myTopicId);
-
+    topicId = TopicId.fromString(topicNumber);
+    console.log("Setting topic to "+topicId);
+    
     ///////////////////////////////////////////////////////////////////
+
+
+    // Connect to Hedera
+    const client = await connectClient(accountId, privateKey)
 
     // Create the query to subscribe to a topic
     new TopicMessageQuery()

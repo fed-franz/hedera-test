@@ -1,39 +1,54 @@
 const {
-    Client,
     TopicMessageSubmitTransaction,
     TopicId
 } = require("@hashgraph/sdk");
 
 require("dotenv").config();
 
-const {printTime} = require('./utils');
-
-const prompt = require('prompt-sync')();
+const {printTime, sleep} = require('./utils');
+const {connectClient} = require('./lib-hedera');
 
 NUM_MSGS=10
 
 async function main() {
 
-    //Grab your Hedera testnet account ID and private key from your .env file
-    const myAccountId = process.env.MY_ACCOUNT_ID;
-    const myPrivateKey = process.env.MY_PRIVATE_KEY;
+    /* Process arguments */
+    const psArgs = process.argv.slice(2);
+    if (psArgs.length > 0)
+        NUM_MSGS = psArgs[0];
+    TOPIC_NUM = null
+    if (psArgs.length > 1)
+        TOPIC_NUM = psArgs[1];
 
-    // If we weren't able to grab it, we should throw a new error
-    if (myAccountId == null ||
-        myPrivateKey == null ) {
-        throw new Error("Environment variables myAccountId and myPrivateKey must be present");
+    //Load Hedera account ID and private key from .env
+    const accountId = process.env.ACCOUNT_ID;
+    const privateKey = process.env.PRIVATE_KEY;
+
+    // Assert Account
+    if (accountId == null ||
+        privateKey == null ) {
+        throw new Error("Please set ACCOUNT_ID and PRIVATE_KEY in the .env file");
     }
 
-    // Create our connection to the Hedera network
-    const client = Client.forTestnet();
-    client.setOperator(myAccountId, myPrivateKey);
-
-    // Load Topic ID
-    const myTopicId = process.env.TOPIC_ID;
-    if (myTopicId == null) {
-        throw new Error("Environment variable TOPIC_ID must be present");
+    // Set topic ID
+    let topicNumber = null;
+    if(TOPIC_NUM != null)
+        topicNumber = TOPIC_NUM;
+    else if (process.env.TOPIC_NUM != null) {
+        topicNumber = process.env.TOPIC_NUM
     }
-    topicId = TopicId.fromString(myTopicId);
+
+    // If not provided, let's create a new topic
+    if(topicNumber != null)
+        topicId = TopicId.fromString(topicNumber);
+    else {
+        console.log("Creating new topic");
+        topicId = await createTopic(client);
+        // Wait 5 seconds between consensus topic creation and subscription 
+        await sleep(5000);
+    }
+
+    console.log("Setting topic to "+topicId);
 
     /* Change maxNodesPerTransaction */
     // client.setMaxNodesPerTransaction(1);
@@ -41,15 +56,11 @@ async function main() {
 
     ///////////////////////////////////////////////////////////////////
 
-    // Get NUM_MSGS argument
-    const myArgs = process.argv.slice(2);
-    if (myArgs.length > 0)
-        NUM_MSGS = myArgs[0]
-
+    // Connect to Hedera
+    const client = await connectClient(accountId, privateKey)
     
-    console.log("Sending "+NUM_MSGS+" transactions to topic "+myTopicId)
-
     /* Send Transactions */
+    console.log("Sending "+NUM_MSGS+" transactions to topic "+topicNumber)
     let txs = [];
     printTime()
     for (let i = 0; i < NUM_MSGS; i++) {
@@ -75,6 +86,7 @@ async function main() {
     //     //     console.log("Transaction " + i + " FAILED");
     // }
 
+    /* Wrap Up */
     console.log("<-------->")
     printTime();
 }

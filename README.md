@@ -12,9 +12,9 @@ node init.js
 
 Set these fields in the .env file:
 ```
-MY_ACCOUNT_ID=_
-MY_PRIVATE_KEY=_
-TOPIC_ID=_
+ACCOUNT_ID=_
+PRIVATE_KEY=_
+TOPIC_NUM=_
 ```
 
 To setup or verify the account and topic setup:
@@ -23,12 +23,14 @@ To setup or verify the account and topic setup:
 
 To generate transactions:
 
-`node generateTxs.js [NUM_TXS]`
+`node generateTxs.js [NUM_TXS] [TOPIC_NUM]`
 
 To subscribe to the topic:
 
-`node subscribeTopic.js`
+`node subscribeTopic.js [TOPIC_NUM]`
 
 To generate transactions with multiple clients:
 
-`runTxTest.sh NUM_PROCESSES NUM_TRANSACTION_PER_PROCESS`
+`./runTxTest.sh [-p NUM_PROCS] [-t TOPIC_ID || -t \"TOPIC_LIST\"] [-N NUM_TXS]"`
+
+For more help using `runTxTest` use `./runTxTest.sh -h`

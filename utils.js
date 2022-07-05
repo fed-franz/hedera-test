@@ -23,7 +23,7 @@ function (ms) {
     });
   }
 
-  const fs = require("fs");
+const fs = require("fs");
 const os = require("os");
 
 exports.setEnv = 

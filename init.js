@@ -8,28 +8,28 @@ const prompt = require('prompt-sync')();
 const yesno = require('yesno');
 
 const {setEnv} = require('./utils')
-const {createTopic, createAccount} = require('./lib-hedera');
+const {createTopic} = require('./lib-hedera');
 
 
 async function main() {
 
     //Grab your Hedera testnet account ID and private key from your .env file
-    myAccountId = process.env.MY_ACCOUNT_ID;
-    myPrivateKey = process.env.MY_PRIVATE_KEY;
+    accountId = process.env.ACCOUNT_ID;
+    privateKey = process.env.PRIVATE_KEY;
 
     // If we weren't able to grab it, we should throw a new error
-    if (myAccountId == null || myAccountId == '_' || myPrivateKey == null || myPrivateKey == '_' ) {
+    if (accountId == null || accountId == '_' || privateKey == null || privateKey == '_' ) {
         console.log("Account ID or private key not defined.")
-        myAccountId = prompt('Please insert your Hedera account ID: ');
-        myPrivateKey = prompt('Please insert your Hedera private key: ');
+        accountId = prompt('Please insert your Hedera account ID: ');
+        privateKey = prompt('Please insert your Hedera private key: ');
 
-        setEnv("MY_ACCOUNT_ID", myAccountId);
-        setEnv("MY_PRIVATE_KEY", myPrivateKey);
+        setEnv("ACCOUNT_ID", accountId);
+        setEnv("PRIVATE_KEY", privateKey);
     }
 
     // Create our connection to the Hedera network
     const client = Client.forTestnet();
-    client.setOperator(myAccountId, myPrivateKey);
+    client.setOperator(accountId, privateKey);
 
     console.log("Hedera Nodes:");
     console.log( client.network ); //TODO: print addresses only
@@ -37,31 +37,34 @@ async function main() {
     console.log( client.mirrorNetwork ); 
 
     //Grab the topic ID from .env file, create one, or get from input
-    myTopicId = process.env.TOPIC_ID;
-    if (myTopicId == null || myTopicId == '_') {
+    topicId = process.env.TOPIC_NUM;
+    if (topicId == null || topicId == '_') {
         const ok = await yesno({
-            question: 'TOPIC_ID not defined. Do you want to insert one?'
+            question: 'TOPIC_NUM not defined. Do you want to insert one?'
         });
         if (ok) 
-            myTopicId = prompt('Please insert the topic ID: ');    
+            topicId = prompt('Please insert the topic ID: ');    
         else{
             const ok2 = await yesno({
                 question: 'Do you want to create a new topic?'
             });
-            if(ok2)
-                myTopicId = await createTopic(client);
-            else
-                console.log("WARNING: TOPIC_ID is not defined. Please insert it in the .env file or create a new one")
+            if(ok2){
+                topicId = await createTopic(client);                
+            }
+            else{
+                console.log("WARNING: TOPIC_NUM is not defined. Please insert it in the .env file or create a new one");
                 return
+            }
         }
             
-        setEnv("TOPIC_ID", myTopicId);
+        setEnv("TOPIC_NUM", topicId);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    console.log("Account ID: "+myAccountId);
-    console.log("Topic ID: "+myTopicId);
+    console.log("");
+    console.log("Account ID: "+accountId);
+    console.log("Topic ID: "+topicId);
 }
 
 main();

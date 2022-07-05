@@ -1,6 +1,7 @@
 const {
     AccountBalanceQuery,
     AccountCreateTransaction,
+    Client,
     Hbar,
     PrivateKey,
     TopicCreateTransaction,
@@ -8,8 +9,19 @@ const {
 } = require("@hashgraph/sdk");
 const { sleep } = require("./utils");
 
+/* connectClient */
+exports.connectClient =
+async function(accountId, privateKey){
+    // Connect to the Hedera network
+    const client = Client.forTestnet();
+    client.setOperator(accountId, privateKey);
+
+    return client
+}
+
+/* createAccount */
 exports.createAccount = 
-async function(client) {
+async function(accountId, client) {
     
     //Create new keys
     const newAccountPrivateKey = await PrivateKey.generateED25519(); 
@@ -36,7 +48,7 @@ async function(client) {
 
     //Create the transfer transaction
     const sendHbar = await new TransferTransaction()
-        .addHbarTransfer(myAccountId, Hbar.fromTinybars(-1000))
+        .addHbarTransfer(accountId, Hbar.fromTinybars(-1000))
         .addHbarTransfer(newAccountId, Hbar.fromTinybars(1000))
         .execute(client);
 
@@ -69,12 +81,6 @@ async function(client) {
     
         //Grab the new topic ID from the receipt
         let topicId = receipt.topicId;
-    
-        //Log the topic ID
-        console.log(`New topic ID: ${topicId}`);
-    
-        // Wait 5 seconds between consensus topic creation and subscription 
-        await sleep(5000);
           
         return topicId;        
 }
